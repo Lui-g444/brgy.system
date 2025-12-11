@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Barangay Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          // Initialize EmailJS
+          emailjs.init("X4uWsTwC1QEeEByTY"); 
+       })();
+    </script>
+</head>
+<body>
+    <div id="login-page">
+        <div class="container">
+            <div class="auth-container">
+                <div class="text-center mb-4">
+                    <img src="imgs/PANLAITANLOGO.jpg" alt="Barangay Logo" class="auth-logo">
+                    <h3 class="mb-2 fw-bold">Welcome Back</h3>
+                    <p class="text-muted">Barangay Panlaitan Management System</p>
+                </div>
+                
+                <form id="login-form">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="username" required placeholder="name@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" required placeholder="••••••••">
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label small" for="rememberMe">Remember me</label>
+                        </div>
+                        <a href="javascript:void(0)" class="text-decoration-none small text-accent fw-bold" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+                            Forgot password?
+                        </a>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <p class="text-muted small mb-2">New here?</p>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">
+                            Create Account
+                        </button>
+                        <div class="mt-3">
+                            <a href="javascript:void(0)" class="text-decoration-none small text-muted" data-bs-toggle="modal" data-bs-target="#resetTokenModal">I have a Reset Token</a>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="mt-4 pt-3 border-top text-center">
+                    <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Need assistance?</small>
+                    <small>
+                        <a href="tel:+639270158991" class="text-decoration-none fw-bold text-dark">+639270158991</a> 
+                        <span class="mx-1 text-muted">•</span>
+                        <a href="mailto:brgypanlaitanbusuangapalawan@gmail.com" class="text-decoration-none fw-bold text-dark">Email Support</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <nav class="navbar navbar-expand-lg navbar-dark app-navbar sticky-top">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand d-flex align-items-center" href="javascript:void(0)">
+                    <img src="imgs/PANLAITANLOGO.jpg" alt="Logo" style="height: 40px; margin-right: 12px; border-radius: 50%;">
+                    <div class="d-flex flex-column">
+                        <span style="line-height: 1; font-size: 1.1rem;">Barangay Panlaitan</span>
+                        <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 400;">Management System</span>
+                    </div>
+                </a>
+
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn position-relative text-white" data-bs-toggle="modal" data-bs-target="#notificationModal" onclick="loadNotifications()">
+                        <i class="fas fa-bell fa-lg"></i>
+                        <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">0</span>
+                    </button>
+
+                    <div class="d-none d-md-flex align-items-center text-white">
+                        <div class="text-end me-3" style="line-height: 1.2;">
+                            <span id="user-name" class="d-block fw-medium">User</span>
+                            <span class="d-block small opacity-75" style="font-size: 0.75rem;">Online</span>
+                        </div>
+                        <i class="fas fa-user-circle fa-2x opacity-75"></i> 
+                    </div>
+
+                    <button class="btn btn-outline-light btn-sm" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4 py-4">
+            <div class="row g-4">
+                <div class="col-lg-2 mb-4 hidden" id="admin-sidebar">
+                    <div class="sidebar">
+                        <h5>Admin Menu</h5>
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link active" href="javascript:void(0)" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:void(0)" data-page="residents"><i class="fas fa-users"></i> Residents</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:void(0)" data-page="certificates"><i class="fas fa-file-contract"></i> Certificates</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:void(0)" data-page="blotter"><i class="fas fa-gavel"></i> Blotter</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:void(0)" data-page="announcements"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 mb-4 hidden" id="resident-sidebar">
+                    <div class="sidebar">
+                        <h5>Resident Menu</h5>
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link active" href="javascript:void(0)" data-page="resident-dashboard"><i class="fas fa-home"></i> Home</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:void(0)" data-page="my-profile"><i class="fas fa-id-card"></i> Profile</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:void(0)" data-page="my-requests"><i class="fas fa-file-invoice"></i> Requests</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:void(0)" data-page="report-incident"><i class="fas fa-exclamation-circle"></i> Report</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:void(0)" data-page="view-announcements"><i class="fas fa-newspaper"></i> News</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-10">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="fw-bold" id="page-title">Overview</h2>
+                        <span class="text-muted small" id="current-date"></span>
+                    </div>
+                    
+                    <div id="dashboard-page" class="page-content">
+                        <div class="alert alert-light border-0 shadow-sm d-flex justify-content-between align-items-center mb-4 p-3" style="border-radius: 12px; background: white;">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                                    <i class="fas fa-headset text-primary"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Emergency Hotline</small>
+                                    <a href="tel:+639270158991" class="fw-bold text-dark">+639270158991</a>
+                                </div>
+                            </div>
+                            <div class="d-none d-md-block text-end">
+                                <small class="text-muted d-block">Official Email</small>
+                                <a href="mailto:brgypanlaitanbusuangapalawan@gmail.com" class="fw-bold text-dark">Contact Support</a>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-4">
+                                <div class="dashboard-card text-center">
+                                    <div class="icon"><i class="fas fa-users"></i></div>
+                                    <h3 id="residents-count">0</h3>
+                                    <p class="text-muted">Total Residents</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="dashboard-card text-center">
+                                    <div class="icon"><i class="fas fa-file-signature"></i></div>
+                                    <h3 id="certificates-count">0</h3>
+                                    <p class="text-muted">Certificates Issued</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="dashboard-card text-center">
+                                    <div class="icon"><i class="fas fa-balance-scale"></i></div>
+                                    <h3 id="blotter-count">0</h3>
+                                    <p class="text-muted">Active Blotter Cases</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-lg-6">
+                                <div class="table-responsive">
+                                    <h5 class="mb-3 px-2">Recent Requests</h5>
+                                    <table class="table table-hover" id="recent-certificates-table">
+                                        <thead><tr><th>Name</th><th>Type</th><th>Date</th><th>Status</th></tr></thead>
+                                        <tbody><tr><td colspan="4" class="text-center py-4 text-muted">No recent data</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="table-responsive">
+                                    <h5 class="mb-3 px-2">Recent Incidents</h5>
+                                    <table class="table table-hover" id="recent-blotter-table">
+                                        <thead><tr><th>Complainant</th><th>Type</th><th>Date</th><th>Status</th></tr></thead>
+                                        <tbody><tr><td colspan="4" class="text-center py-4 text-muted">No recent data</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="residents-page" class="page-content hidden">
+                        <div class="d-flex justify-content-end mb-4">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addResidentModal">
+                                <i class="fas fa-plus me-2"></i>New Resident
+                            </button>
+                        </div>
+                        <div class="form-section">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" placeholder="Search by name or address..." id="search-residents">
+                                </div>
+                                <div class="col-md-6 d-flex gap-2">
+                                    <select class="form-select" id="filter-residents">
+                                        <option value="">All Residents</option>
+                                        <option value="age">Sort by Age</option>
+                                    </select>
+                                    <button class="btn btn-secondary px-4"><i class="fas fa-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="residents-table">
+                                <thead><tr><th>Name</th><th>Age</th><th>Address</th><th>Contact</th><th>ID</th><th>Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="certificates-page" class="page-content hidden">
+                        <div class="form-section mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6"><input type="text" class="form-control" placeholder="Search certificates..." id="search-certificates"></div>
+                                <div class="col-md-6 d-flex gap-2">
+                                    <select class="form-select" id="filter-certificates">
+                                        <option value="">All Status</option>
+                                        <option value="Requested">Requested</option>
+                                        <option value="Approved">Approved</option>
+                                    </select>
+                                    <button class="btn btn-secondary"><i class="fas fa-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="certificates-table">
+                                <thead><tr><th>Resident</th><th>Type</th><th>Purpose</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="blotter-page" class="page-content hidden">
+                        <div class="d-flex justify-content-end mb-4">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBlotterModal"><i class="fas fa-plus me-2"></i>New Report</button>
+                        </div>
+                        <div class="form-section mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6"><input type="text" class="form-control" placeholder="Search cases..." id="search-blotter"></div>
+                                <div class="col-md-6 d-flex gap-2">
+                                    <select class="form-select" id="filter-blotter">
+                                        <option value="">All Status</option>
+                                        <option value="Open">Open</option>
+                                        <option value="Resolved">Resolved</option>
+                                    </select>
+                                    <button class="btn btn-secondary"><i class="fas fa-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="blotter-table">
+                                <thead><tr><th>Complainant</th><th>Respondent</th><th>Type</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="announcements-page" class="page-content hidden">
+                        <div class="d-flex justify-content-end mb-4">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAnnouncementModal"><i class="fas fa-bullhorn me-2"></i>Post Announcement</button>
+                        </div>
+                        <div id="announcements-list"></div>
+                    </div>
+
+                    <div id="resident-dashboard-page" class="page-content hidden">
+                        <div class="alert alert-light border-0 shadow-sm d-flex justify-content-between align-items-center mb-4 p-3" style="border-radius: 12px; background: white;">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                                    <i class="fas fa-headset text-primary"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Barangay Hotline</small>
+                                    <a href="tel:+639270158991" class="fw-bold text-dark">+639270158991</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-4">
+                                <div class="dashboard-card text-center" onclick="showPage('my-requests')" style="cursor: pointer;">
+                                    <div class="icon"><i class="fas fa-file-invoice"></i></div>
+                                    <h4>My Requests</h4>
+                                    <p class="text-muted small">Track your documents</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="dashboard-card text-center" onclick="showPage('my-profile')" style="cursor: pointer;">
+                                    <div class="icon"><i class="fas fa-user-edit"></i></div>
+                                    <h4>My Profile</h4>
+                                    <p class="text-muted small">Update your info</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="dashboard-card text-center" onclick="showPage('report-incident')" style="cursor: pointer;">
+                                    <div class="icon text-danger"><i class="fas fa-exclamation-triangle"></i></div>
+                                    <h4>Report</h4>
+                                    <p class="text-muted small">File a complaint</p>
+                                </div>
+                            </div>
+                        </div>
+                        <h5 class="mb-3">Latest Announcements</h5>
+                        <div id="resident-announcements-list"></div>
+                    </div>
+
+                    <div id="my-profile-page" class="page-content hidden">
+                        <div class="form-section">
+                            <form id="update-profile-form">
+                                <div class="row g-3">
+                                    <div class="col-md-6"><label class="form-label">Name</label><input type="text" class="form-control" id="profile-name" readonly></div>
+                                    <div class="col-md-6"><label class="form-label">Age</label><input type="number" class="form-control" id="profile-age" readonly></div>
+                                    <div class="col-12"><label class="form-label">Address</label><input type="text" class="form-control" id="profile-address"></div>
+                                    <div class="col-md-6"><label class="form-label">Contact</label><input type="tel" class="form-control" id="profile-contact"></div>
+                                    <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" id="profile-email"></div>
+                                    <div class="col-12 text-end"><button type="submit" class="btn btn-primary">Save Changes</button></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="my-requests-page" class="page-content hidden">
+                        <div class="d-flex justify-content-end mb-4">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestCertificateModal"><i class="fas fa-plus me-2"></i>New Request</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="my-requests-table">
+                                <thead><tr><th>Type</th><th>Purpose</th><th>Date</th><th>Status</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="report-incident-page" class="page-content hidden">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="form-section">
+                                    <form id="incident-report-form">
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <h5 class="mb-0">Incident Report</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="anonymous-toggle">
+                                                <label class="form-check-label small" for="anonymous-toggle">Hide my name</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Name</label>
+                                                <input type="text" class="form-control" name="reporterName" id="reporter-name">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Contact</label>
+                                                <input type="tel" class="form-control" name="reporterContact" id="reporter-contact">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Type</label>
+                                                <select class="form-select" name="incidentType" required>
+                                                    <option value="Theft">Theft</option><option value="Dispute">Dispute</option><option value="Noise Complaint">Noise</option><option value="Others">Others</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Date</label>
+                                                <input type="datetime-local" class="form-control" name="incidentDateTime" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Location</label>
+                                                <input type="text" class="form-control" name="location" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Description</label>
+                                                <textarea class="form-control" name="description" rows="3" required></textarea>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Evidence</label>
+                                                <input type="file" class="form-control" name="evidenceFiles" id="evidence-files" multiple>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Urgency</label>
+                                                <select class="form-select" name="urgency"><option value="normal">Normal</option><option value="high">High</option></select>
+                                            </div>
+                                            <div class="col-12 mt-4">
+                                                <button type="submit" class="btn btn-primary w-100 py-3" id="submit-incident-btn">Submit Report</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="view-announcements-page" class="page-content hidden">
+                        <div id="resident-view-announcements"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addResidentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Resident</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-resident-form">
+                        <div class="row mb-3">
+                            <div class="col-md-6"><label class="form-label">Name</label><input type="text" class="form-control" name="name" required></div>
+                            <div class="col-md-6"><label class="form-label">Age</label><input type="number" class="form-control" name="age" required></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Address</label><input type="text" class="form-control" name="address" required></div>
+                        <div class="row mb-3">
+                            <div class="col-md-6"><label class="form-label">Contact</label><input type="tel" class="form-control" name="contact" required></div>
+                            <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" name="email"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6"><label class="form-label">Household ID</label><input type="text" class="form-control" name="householdId"></div>
+                            <div class="col-md-6 d-flex align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="createAccount"><label class="form-check-label ms-2">Generate Login</label></div></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-resident-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editResidentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Resident</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-resident-form">
+                        <input type="hidden" id="edit-resident-id">
+                        <div class="row mb-3">
+                            <div class="col-md-6"><label class="form-label">Name</label><input type="text" class="form-control" id="edit-resident-name" required></div>
+                            <div class="col-md-6"><label class="form-label">Age</label><input type="number" class="form-control" id="edit-resident-age" required></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Address</label><input type="text" class="form-control" id="edit-resident-address" required></div>
+                        <div class="row mb-3">
+                            <div class="col-md-6"><label class="form-label">Contact</label><input type="tel" class="form-control" id="edit-resident-contact" required></div>
+                            <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" id="edit-resident-email"></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Household ID</label><input type="text" class="form-control" id="edit-resident-household"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="update-resident-btn">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addBlotterModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Blotter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-blotter-form">
+                        <div class="row mb-3">
+                            <div class="col-md-6"><label class="form-label">Complainant</label><input type="text" class="form-control" name="complainant" required></div>
+                            <div class="col-md-6"><label class="form-label">Respondent</label><input type="text" class="form-control" name="respondent" required></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6"><label class="form-label">Type</label><select class="form-select" name="incidentType"><option>Dispute</option><option>Theft</option><option>Assault</option><option>Others</option></select></div>
+                            <div class="col-md-6"><label class="form-label">Date</label><input type="date" class="form-control" name="incidentDate" required></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Location</label><input type="text" class="form-control" name="location" required></div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="3"></textarea></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-blotter-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editBlotterModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Blotter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-blotter-form">
+                        <input type="hidden" id="edit-blotter-id">
+                        <div class="row mb-3">
+                            <div class="col-md-6"><label class="form-label">Complainant</label><input type="text" class="form-control" id="edit-blotter-complainant" required></div>
+                            <div class="col-md-6"><label class="form-label">Respondent</label><input type="text" class="form-control" id="edit-blotter-respondent" required></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6"><label class="form-label">Type</label><select class="form-select" id="edit-blotter-type"><option>Dispute</option><option>Theft</option><option>Assault</option><option>Others</option></select></div>
+                            <div class="col-md-6"><label class="form-label">Date</label><input type="date" class="form-control" id="edit-blotter-date"></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Location</label><input type="text" class="form-control" id="edit-blotter-location"></div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="edit-blotter-description" rows="3"></textarea></div>
+                        <div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="edit-blotter-status"><option>Open</option><option>In Progress</option><option>Resolved</option></select></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="update-blotter-btn">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addAnnouncementModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Add Announcement</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="add-announcement-form">
+                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" name="title" required></div>
+                        <div class="mb-3"><label class="form-label">Content</label><textarea class="form-control" name="content" rows="4"></textarea></div>
+                        <div class="row mb-3"><div class="col-6"><label class="form-label">Date</label><input type="date" class="form-control" name="pubDate"></div><div class="col-6"><label class="form-label">Expiry</label><input type="date" class="form-control" name="expiryDate"></div></div>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="important"><label class="form-check-label">Important</label></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" id="save-announcement-btn">Post</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editAnnouncementModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Edit Announcement</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="edit-announcement-form">
+                        <input type="hidden" id="edit-announcement-id">
+                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="edit-announcement-title"></div>
+                        <div class="mb-3"><label class="form-label">Content</label><textarea class="form-control" id="edit-announcement-content" rows="4"></textarea></div>
+                        <div class="row mb-3"><div class="col-6"><label class="form-label">Date</label><input type="date" class="form-control" id="edit-announcement-pubdate"></div><div class="col-6"><label class="form-label">Expiry</label><input type="date" class="form-control" id="edit-announcement-expiry"></div></div>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="edit-important-switch"><label class="form-check-label">Important</label></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger me-auto" id="delete-announcement-btn">Delete</button>
+                    <button class="btn btn-primary" id="update-announcement-btn">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="requestCertificateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Request Certificate</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="request-certificate-form">
+                        <div class="mb-3"><label class="form-label">Type</label><select class="form-select" name="documentType" required><option value="">Select</option><option value="Barangay Clearance">Clearance (₱50)</option><option value="Certificate of Residency">Residency (₱50)</option><option value="Certificate of Indigency">Indigency (Free)</option><option value="Business Permit">Permit (₱200)</option></select></div>
+                        <div class="mb-3"><label class="form-label">Purpose</label><textarea class="form-control" name="purpose" rows="2" required></textarea></div>
+                        <hr>
+                        <h6 class="mb-3">Payment</h6>
+                        <div class="mb-3">
+                            <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="paymentMethod" id="pay-cash" value="Cash" checked onchange="togglePaymentFields()"><label class="form-check-label" for="pay-cash">Cash</label></div>
+                            <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="paymentMethod" id="pay-gcash" value="GCash" onchange="togglePaymentFields()"><label class="form-check-label fw-bold text-primary" for="pay-gcash">GCash</label></div>
+                        </div>
+                        <div id="gcash-fields" class="hidden p-3 bg-light border rounded">
+                            <div class="text-center mb-3">
+                                <p class="small fw-bold mb-1">Scan to Pay</p>
+                                <img src="imgs/bc58e3dd-dea8-4a71-ab36-d200c8ad396c.jpg" alt="GCash QR" style="width: 120px; height: 120px; border: 1px solid #ccc;">
+                                <p class="small text-muted mt-1">Or send to: <strong>09687991091</strong></p>
+                            </div>
+                            <div class="mb-2"><input type="number" class="form-control form-control-sm" name="amountPaid" placeholder="Amount"></div>
+                            <div class="mb-2"><input type="text" class="form-control form-control-sm" name="refNumber" placeholder="Reference No."></div>
+                            <div><input type="file" class="form-control form-control-sm" id="payment-proof-file" accept="image/*"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" id="submit-request-btn">Submit</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updateCertificateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Update Status</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="update-certificate-form">
+                        <input type="hidden" id="edit-certificate-id">
+                        <div class="mb-3"><label class="form-label">Resident</label><input type="text" class="form-control" id="edit-certificate-resident" readonly></div>
+                        <div class="mb-3"><label class="form-label">Type</label><input type="text" class="form-control" id="edit-certificate-type" readonly></div>
+                        <div class="mb-3"><label class="form-label">Purpose</label><textarea class="form-control" id="edit-certificate-purpose" readonly rows="2"></textarea></div>
+                        <div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="edit-certificate-status"><option>Requested</option><option>Approved</option><option>Released</option></select></div>
+                        <div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" id="edit-certificate-notes" rows="2"></textarea></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" id="update-certificate-btn">Update</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="register-form">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" name="password" id="register-password" required>
+                                <div id="password-strength-bar" class="mt-1"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Confirm</label>
+                                <input type="password" class="form-control" name="confirmPassword" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Account Type</label>
+                            <select class="form-select" name="accountType" id="account-type" required>
+                                <option value="">Select type</option>
+                                <option value="resident">Resident</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                        </div>
+                        
+                        <div id="resident-fields">
+                            <div class="mb-3">
+                                <label class="form-label">Are you already registered?</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="residentExists" value="yes" checked>
+                                    <label class="form-check-label">Yes, I have a record</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="residentExists" value="no">
+                                    <label class="form-check-label">No, I'm new</label>
+                                </div>
+                            </div>
+                            
+                            <div id="existing-resident-fields">
+                                <div class="mb-3">
+                                    <label class="form-label">Resident Name or ID</label>
+                                    <input type="text" class="form-control" name="residentIdentifier" placeholder="Search your name...">
+                                </div>
+                            </div>
+                            
+                            <div id="new-resident-fields" class="hidden">
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label">Age</label>
+                                        <input type="number" class="form-control" name="age">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Contact</label>
+                                        <input type="tel" class="form-control" name="contact">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Address</label>
+                                    <input type="text" class="form-control" name="address">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="admin-fields" class="hidden">
+                            <div class="mb-3">
+                                <label class="form-label">Admin Access Code</label>
+                                <input type="password" class="form-control" name="adminCode" placeholder="Enter secure code">
+                                <div class="form-text text-muted">Required for admin registration.</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="register-btn">Create Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Reset Password</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="forgot-password-form"><div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" name="email" required></div></form>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" id="send-reset-btn">Send Link</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="resetTokenModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Set Password</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="reset-token-form">
+                        <div class="mb-3"><label class="form-label">Token</label><input type="text" class="form-control" id="reset-token-input" required></div>
+                        <div class="mb-3"><label class="form-label">New Password</label><input type="password" class="form-control" id="new-password-input" required></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" id="save-new-password-btn">Update</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header flex-column align-items-stretch p-0">
+                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom"><h5 class="m-0">Notifications</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="d-flex justify-content-between bg-light p-2 px-3">
+                        <div class="btn-group btn-group-sm">
+                            <input type="radio" class="btn-check" name="notifFilter" id="f-all" checked onclick="setNotificationFilter('all')"><label class="btn btn-outline-secondary" for="f-all">All</label>
+                            <input type="radio" class="btn-check" name="notifFilter" id="f-cert" onclick="setNotificationFilter('cert')"><label class="btn btn-outline-secondary" for="f-cert"><i class="fas fa-file"></i></label>
+                            <input type="radio" class="btn-check" name="notifFilter" id="f-rep" onclick="setNotificationFilter('report')"><label class="btn btn-outline-secondary" for="f-rep"><i class="fas fa-exclamation"></i></label>
+                        </div>
+                        <button id="btn-clear-notifs" class="btn btn-sm text-danger" style="display:none" onclick="clearAllNotifications()">Clear All</button>
+                    </div>
+                </div>
+                <div class="modal-body p-0" style="max-height: 400px; overflow-y: auto;">
+                    <div id="modal-notification-list" class="list-group list-group-flush"><div class="text-center py-5">Loading...</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="anonymousConfirmationModal" tabindex="-1">
+        <div class="modal-dialog text-center">
+            <div class="modal-content">
+                <div class="modal-body py-5">
+                    <i class="fas fa-check-circle text-success display-1 mb-3"></i>
+                    <h4>Submitted!</h4>
+                    <p>Reference: <strong id="anonymous-report-reference"></strong></p>
+                    <button class="btn btn-primary mt-3" data-bs-dismiss="modal" onclick="returnToDashboard()">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 1100;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    </script>
+</body>
+</html>

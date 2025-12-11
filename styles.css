@@ -1,0 +1,310 @@
+/* =========================================
+   1. COLOR PALETTE & VARIABLES (60-30-10 Rule)
+   ========================================= */
+:root {
+    /* 60% - Primary Backgrounds (White/Light) */
+    --bg-body: #F8F9FA;       /* Very light gray for page background */
+    --bg-surface: #FFFFFF;    /* Pure white for cards/modals */
+    
+    /* 30% - Secondary (Black/Dark) */
+    --secondary-main: #111111; /* Jet Black for Navbar/Sidebar */
+    --text-main: #1F2937;      /* Dark Gray for headings */
+    --text-body: #4B5563;      /* Medium Gray for body text */
+    
+    /* 10% - Accent (Red) */
+    --accent: #E63946;         /* Vibrant Red for Buttons/CTAs */
+    --accent-hover: #C92A35;   /* Darker Red for hover states */
+    --accent-light: #FEE2E2;   /* Light Red for backgrounds/badges */
+
+    /* Functional Colors */
+    --danger: #EF4444;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --border: #E5E7EB;
+}
+
+/* =========================================
+   2. GLOBAL RESETS & TYPOGRAPHY
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-body);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-main);
+    font-weight: 600;
+    letter-spacing: -0.5px; /* Tighter tracking for elegance */
+}
+
+a { text-decoration: none; color: inherit; transition: 0.3s; }
+
+/* Utilities */
+.hidden { display: none !important; }
+.text-accent { color: var(--accent) !important; }
+.fw-medium { font-weight: 500; }
+
+/* =========================================
+   3. COMPONENTS
+   ========================================= */
+
+/* Buttons - The 10% Accent */
+.btn-primary {
+    background-color: var(--accent);
+    border: none;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 8px; /* Slightly rounded */
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(230, 57, 70, 0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover, .btn-primary:active, .btn-primary:focus {
+    background-color: var(--accent-hover) !important;
+    box-shadow: 0 6px 12px rgba(230, 57, 70, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-outline-light {
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+}
+
+.btn-outline-light:hover {
+    background-color: white;
+    color: var(--secondary-main);
+}
+
+.btn-secondary {
+    background-color: #E5E7EB;
+    color: var(--text-main);
+    border: none;
+}
+
+.btn-secondary:hover { background-color: #D1D5DB; color: black; }
+
+/* Navbar - The 30% Secondary (Black) */
+.app-navbar {
+    background-color: var(--secondary-main) !important;
+    padding: 1rem 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.navbar-brand span {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: white;
+}
+
+/* Sidebar - Elegant Vertical Navigation */
+.sidebar {
+    background-color: var(--bg-surface);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    height: calc(100vh - 100px); /* Fill screen minus header */
+    position: sticky;
+    top: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar h5 {
+    color: var(--text-main);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+.sidebar .nav-link {
+    color: var(--text-body);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar .nav-link i {
+    width: 24px;
+    margin-right: 12px;
+    font-size: 1.1rem;
+}
+
+.sidebar .nav-link:hover {
+    background-color: var(--bg-body);
+    color: var(--secondary-main);
+}
+
+.sidebar .nav-link.active {
+    background-color: var(--secondary-main); /* Black active state */
+    color: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+/* Dashboard Cards - Clean & Minimal */
+.dashboard-card {
+    background: var(--bg-surface);
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: transparent;
+}
+
+/* Accent top border for cards */
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.dashboard-card:hover::before { opacity: 1; }
+
+.dashboard-card .icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--bg-body);
+    color: var(--secondary-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto 1rem auto;
+    transition: 0.3s;
+}
+
+.dashboard-card:hover .icon {
+    background-color: var(--accent);
+    color: white;
+}
+
+.dashboard-card h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--secondary-main);
+    margin-bottom: 0;
+}
+
+/* Tables - Elegant Rows */
+.table-responsive {
+    background: var(--bg-surface);
+    border-radius: 16px;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.table { margin-bottom: 0; }
+
+.table thead th {
+    background-color: transparent;
+    color: var(--text-main);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--border);
+    padding: 1rem;
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    color: var(--text-body);
+    border-bottom: 1px solid var(--border);
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:hover { background-color: #FAFAFA; }
+
+/* Status Badges - Pill Shape */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-requested { background-color: #EFF6FF; color: #1D4ED8; }
+.status-approved { background-color: #ECFDF5; color: #047857; }
+.status-released { background-color: #F3F4F6; color: #374151; }
+.status-open { background-color: #FEF2F2; color: #DC2626; }
+
+/* Login Page Styling */
+.auth-container {
+    background: var(--bg-surface);
+    padding: 3rem;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    max-width: 500px;
+    margin: 4rem auto;
+    border: 1px solid var(--border);
+}
+
+.auth-logo { width: 100px; height: 100px; margin-bottom: 1rem; }
+
+.form-control, .form-select {
+    background-color: #F9FAFB;
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.form-control:focus {
+    background-color: white;
+    border-color: var(--secondary-main);
+    box-shadow: 0 0 0 4px rgba(0,0,0,0.05);
+}
+
+/* Announcement Cards */
+.announcement-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--secondary-main);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.announcement-card h5 { color: var(--secondary-main); font-weight: 700; }
+.announcement-card.border-warning { border-left-color: var(--accent) !important; }
+.announcement-card .fa-star { color: var(--accent) !important; }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .sidebar {
+        position: static;
+        height: auto;
+        margin-bottom: 2rem;
+    }
+}
